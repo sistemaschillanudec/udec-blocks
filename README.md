@@ -1,93 +1,132 @@
-# udec-blocks
+# UdeC Blocks
 
+Plugin de WordPress que proporciona bloques personalizados para el editor de bloques (Gutenberg), desarrollado por [bloom.lat](https://bloom.lat) para la Universidad de Concepción.
 
+## Bloques incluidos
 
-## Getting started
+| Bloque | Nombre | Descripción |
+|--------|--------|-------------|
+| Acordeón | `udec-blocks/accordion` | Sección con contenido colapsable en formato acordeón |
+| Contenido en pestañas | `udec-blocks/content-tabs` | Contenidos presentados en pestañas navegables |
+| Item de pestaña | `udec-blocks/content-tab-item` | Bloque interno para cada pestaña (no registrable manualmente) |
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+## Requisitos
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+- **WordPress:** 6.7 o superior
+- **PHP:** 8.1 o superior
+- **Node.js:** 18+ (para desarrollo)
+- **npm:** 9+ (para desarrollo)
 
-## Add your files
+## Instalación vía Composer
 
-* [Create](https://docs.gitlab.com/user/project/repository/web_editor/#create-a-file) or [upload](https://docs.gitlab.com/user/project/repository/web_editor/#upload-a-file) files
-* [Add files using the command line](https://docs.gitlab.com/topics/git/add_files/#add-files-to-a-git-repository) or push an existing Git repository with the following command:
+Este plugin está diseñado para instalarse como dependencia Composer en proyectos WordPress:
+
+```json
+{
+  "require": {
+    "bloom-ux/udec-blocks": "^0.1.0"
+  }
+}
+```
+
+### Compilación automática en composer install/update
+
+Dado que los assets compilados (`build/`) no se versionan en el repositorio, es necesario compilarlos después de instalar o actualizar el paquete. Agrega scripts en tu `composer.json`:
+
+```json
+{
+  "scripts": {
+    "post-install-cmd": [
+      "@compile-udec-blocks"
+    ],
+    "post-update-cmd": [
+      "@compile-udec-blocks"
+    ],
+    "compile-udec-blocks": [
+      "cd vendor/bloom-ux/udec-blocks && [ -f package.json ] && npm install && npm run build || true"
+    ]
+  }
+}
+```
+
+> **Nota:** Ajusta la ruta `vendor/bloom-ux/udec-blocks` según la configuración de tu proyecto.
+
+## Desarrollo
+
+### Instalación de dependencias
+
+```bash
+npm install
+```
+
+### Comandos disponibles
+
+| Comando | Descripción |
+|---------|-------------|
+| `npm run build` | Compila los assets para producción |
+| `npm run start` | Modo desarrollo con watch automático |
+| `npm run format` | Formatea el código con Prettier |
+| `npm run lint:js` | Linting de JavaScript con ESLint |
+| `npm run lint:css` | Linting de CSS |
+| `npm run packages-update` | Actualiza paquetes de @wordpress/* |
+| `npm run plugin-zip` | Genera un ZIP del plugin |
+
+## Estructura del proyecto
 
 ```
-cd existing_repo
-git remote add origin https://gitlab.com/bloom-ux/udec-blocks.git
-git branch -M main
-git push -uf origin main
+udec-blocks/
+├── build/                  # Assets compilados (no versionados)
+│   └── blocks/
+│       ├── accordion/
+│       └── content-tabs/
+├── inc/                    # Archivos PHP adicionales
+├── src/
+│   ├── blocks/
+│   │   ├── accordion/      # Bloque acordeón
+│   │   │   ├── block.json
+│   │   │   ├── edit.js
+│   │   │   ├── index.js
+│   │   │   ├── render.php
+│   │   │   ├── save.js
+│   │   │   └── view.js
+│   │   └── content-tabs/   # Bloque pestañas
+│   │       ├── block.json
+│   │       ├── content-tab-item.js
+│   │       ├── edit.js
+│   │       ├── index.js
+│   │       ├── render.php
+│   │       ├── save.js
+│   │       └── view.js
+│   └── utils/
+│       └── generate-id.js
+├── udec-blocks.php         # Archivo principal del plugin
+├── webpack.config.js
+└── package.json
 ```
 
-## Integrate with your tools
+## Dependencias
 
-* [Set up project integrations](https://gitlab.com/bloom-ux/udec-blocks/-/settings/integrations)
+### Producción
 
-## Collaborate with your team
+- [micromodal](https://github.com/ghosh/micromodal) - Modal accesible y ligero
 
-* [Invite team members and collaborators](https://docs.gitlab.com/user/project/members/)
-* [Create a new merge request](https://docs.gitlab.com/user/project/merge_requests/creating_merge_requests/)
-* [Automatically close issues from merge requests](https://docs.gitlab.com/user/project/issues/managing_issues/#closing-issues-automatically)
-* [Enable merge request approvals](https://docs.gitlab.com/user/project/merge_requests/approvals/)
-* [Set auto-merge](https://docs.gitlab.com/user/project/merge_requests/auto_merge/)
+### Desarrollo
 
-## Test and Deploy
+- [@wordpress/scripts](https://developer.wordpress.org/block-editor/reference-guides/packages/packages-scripts/) - Herramientas de build para bloques
+- [@10up/block-components](https://github.com/10up/block-components) - Componentes reutilizables para bloques
+- [@wordpress/icons](https://developer.wordpress.org/block-editor/reference-guides/packages/packages-icons/) - Iconos de WordPress
 
-Use the built-in continuous integration in GitLab.
+## Características técnicas
 
-* [Get started with GitLab CI/CD](https://docs.gitlab.com/ci/quick_start/)
-* [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/user/application_security/sast/)
-* [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/topics/autodevops/requirements/)
-* [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/user/clusters/agent/)
-* [Set up protected environments](https://docs.gitlab.com/ci/environments/protected_environments/)
+- **Server-side rendering:** Los bloques `accordion` y `content-tabs` usan renderizado PHP para el frontend
+- **CSS Variables:** Los bloques exponen variables CSS personalizadas con prefijo `--udec-blocks--` para theming
+- **Inner blocks:** Ambos bloques soportan bloques internos con filtros `render_block_data` para preservar contenido
+- **jQuery:** Los scripts de vista dependen de `jquery-core`
 
-***
+## Licencia
 
-# Editing this README
+GPLv2 o posterior. Ver [LICENSE](https://www.gnu.org/licenses/gpl-2.0.html) para más detalles.
 
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
+## Créditos
 
-## Suggestions for a good README
-
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
-
-## Name
-Choose a self-explaining name for your project.
-
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
-
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
-
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
-
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
-
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
-
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
-
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
-
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
-
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
-
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
-
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
-
-## License
-For open source projects, say how it is licensed.
-
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+Desarrollado por [bloom.lat](https://bloom.lat) para la Universidad de Concepción.

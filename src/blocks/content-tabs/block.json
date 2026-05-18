@@ -1,0 +1,35 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "udec-blocks/content-tabs",
+	"version": "0.1.0",
+	"title": "Contenido en pestañas",
+	"category": "widgets",
+	"icon": "table-row-after",
+	"description": "Permite crear una sección de contenidos presentados en pestañas.",
+	"keywords": [ "tab", "pestana", "pestañita" ],
+	"attributes": {
+		"tabs": {
+			"type": "array",
+			"default": []
+		},
+		"activeTabId": {
+			"type": "string",
+			"default": "8f0617d02"
+		}
+	},
+	"supports": {
+		"html": false,
+		"anchor": true,
+		"renaming": true
+	},
+	"providesContext": {
+		"udec-blocks/content-tabs/activeTabId": "activeTabId"
+	},
+	"textdomain": "udec-blocks-content-tabs",
+	"editorScript": "file:./index.js",
+	"editorStyle": "file:./index.css",
+	"viewScript": [ "file:./view.js", "jquery-core" ],
+	"style": [ "file:./style-index.css" ],
+	"render": "file:./../../../src/blocks/content-tabs/render.php"
+}

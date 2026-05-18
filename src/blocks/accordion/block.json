@@ -1,0 +1,52 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "udec-blocks/accordion",
+	"version": "0.1.0",
+	"title": "Acordeón",
+	"category": "widgets",
+	"icon": "list-view",
+	"description": "Permite crear una sección con contenido colapsable en acordeón.",
+	"keywords": [
+		"acordeón",
+		"details",
+		"colapsable"
+	],
+	"attributes": {
+		"title": {
+			"type": "string",
+			"default": "Título del Acordeón"
+		},
+		"description": {
+			"type": "string",
+			"default": "Bajada opcional"
+		},
+		"anchorId": {
+			"type": "string",
+			"default": ""
+		},
+		"anchor": {
+			"type": "string",
+			"default": ""
+		}
+	},
+	"supports": {
+		"html": false,
+		"align": true,
+		"anchor": true
+	},
+	"providesContext": {
+		"udec-blocks/block-accordion/activeAccordionId": "activeAccordionId"
+	},
+	"textdomain": "udec-blocks-accordion",
+	"editorScript": "file:./index.js",
+	"editorStyle": "file:./index.css",
+	"viewScript": [
+		"file:./view.js",
+		"jquery-core"
+	],
+	"style": [
+		"file:./style-index.css"
+	],
+	"render": "file:./../../../src/blocks/accordion/render.php"
+}
