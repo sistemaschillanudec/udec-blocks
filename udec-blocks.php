@@ -71,6 +71,188 @@ function udec_blocks_init() {
 	);
 }
 
+add_action( 'enqueue_block_editor_assets', 'udec_blocks_enqueue_editor_filters' );
+
+/**
+ * Encolar JS y CSS de filtros para extender core/image en el editor
+ *
+ * @return void
+ */
+function udec_blocks_enqueue_editor_filters() {
+	$asset_file = __DIR__ . '/build/filters/index.asset.php';
+	if ( ! file_exists( $asset_file ) ) {
+		return;
+	}
+	$asset = include $asset_file;
+	wp_enqueue_script(
+		'udec-blocks-editor-filters',
+		plugins_url( 'build/filters/index.js', __FILE__ ),
+		$asset['dependencies'] ?? array(),
+		$asset['version'] ?? filemtime( $asset_file ),
+		true
+	);
+	wp_enqueue_style(
+		'udec-blocks-editor-filters',
+		plugins_url( 'build/filters/style-index.css', __FILE__ ),
+		array(),
+		$asset['version'] ?? filemtime( $asset_file )
+	);
+}
+
+add_action( 'wp_enqueue_scripts', 'udec_blocks_enqueue_frontend_styles' );
+
+/**
+ * Encolar CSS de visibilidad responsive en el frontend
+ *
+ * @return void
+ */
+function udec_blocks_enqueue_frontend_styles() {
+	$css_file = __DIR__ . '/build/filters/style-index.css';
+	if ( ! file_exists( $css_file ) ) {
+		return;
+	}
+	wp_enqueue_style(
+		'udec-blocks-responsive-image-styles',
+		plugins_url( 'build/filters/style-index.css', __FILE__ ),
+		array(),
+		filemtime( $css_file )
+	);
+}
+
+add_filter( 'render_block', 'udec_blocks_render_core_image_responsive', 10, 2 );
+
+/**
+ * Modificar el render de core/image y core/cover para agregar visibilidad e imágenes por breakpoint
+ *
+ * @param string $block_content HTML del bloque renderizado.
+ * @param array  $block         Datos del bloque.
+ * @return string HTML modificado.
+ */
+function udec_blocks_render_core_image_responsive( $block_content, $block ) {
+	$block_name = $block['blockName'] ?? '';
+	$is_cover   = 'core/cover' === $block_name;
+
+	if ( 'core/image' !== $block_name && ! $is_cover ) {
+		return $block_content;
+	}
+
+	$attrs = $block['attrs'] ?? array();
+
+	$hide_mobile  = ! empty( $attrs['hideOnMobile'] );
+	$hide_tablet  = ! empty( $attrs['hideOnTablet'] );
+	$hide_desktop = ! empty( $attrs['hideOnDesktop'] );
+	$mobile_url   = $attrs['mobileImageUrl'] ?? '';
+	$tablet_url   = $attrs['tabletImageUrl'] ?? '';
+
+	$has_custom_images = $mobile_url || $tablet_url;
+	$has_visibility    = $hide_mobile || $hide_tablet || $hide_desktop;
+
+	if ( ! $has_custom_images && ! $has_visibility ) {
+		return $block_content;
+	}
+
+	$classes = array( 'udec-responsive-image' );
+	if ( $hide_mobile ) {
+		$classes[] = 'hide-mobile';
+	}
+	if ( $hide_tablet ) {
+		$classes[] = 'hide-tablet';
+	}
+	if ( $hide_desktop ) {
+		$classes[] = 'hide-desktop';
+	}
+
+	$class_attr = ' ' . implode( ' ', $classes );
+
+	if ( $is_cover ) {
+		if ( ! preg_match( '/<img[^>]+class="[^"]*wp-block-cover__image-background[^"]*"/', $block_content ) ) {
+			return $block_content;
+		}
+
+		$block_content = preg_replace(
+			'/<div([^>]*)class="([^"]*wp-block-cover[^"]*)"/',
+			'<div$1class="$2' . $class_attr . '"',
+			$block_content,
+			1
+		);
+
+		if ( ! $has_custom_images ) {
+			return $block_content;
+		}
+
+		$alt_text = '';
+		if ( preg_match( '/<img[^>]+alt="([^"]*)"/', $block_content, $matches ) ) {
+			$alt_text = $matches[1];
+		}
+
+		$desktop_url = '';
+		if ( preg_match( '/<img[^>]+src="([^"]+)"/', $block_content, $matches ) ) {
+			$desktop_url = $matches[1];
+		}
+
+		$sources = '';
+		if ( $mobile_url ) {
+			$sources .= '<source media="(max-width: 575px)" srcset="' . esc_url( $mobile_url ) . '">';
+		}
+		if ( $tablet_url ) {
+			$sources .= '<source media="(min-width: 576px)" srcset="' . esc_url( $tablet_url ) . '">';
+		}
+
+		$fallback_url = $desktop_url ? $desktop_url : ( $tablet_url ? $tablet_url : $mobile_url );
+		$fallback_img = '<img src="' . esc_url( $fallback_url ) . '" alt="' . esc_attr( $alt_text ) . '" class="wp-block-cover__image-background">';
+		$picture_html = '<picture>' . $sources . $fallback_img . '</picture>';
+
+		$block_content = preg_replace(
+			'/<img[^>]+class="[^"]*wp-block-cover__image-background[^"]*"[^>]*>/',
+			$picture_html,
+			$block_content,
+			1
+		);
+	} else {
+		$block_content = preg_replace(
+			'/<figure([^>]*)class="([^"]*)"/',
+			'<figure$1class="$2' . $class_attr . '"',
+			$block_content,
+			1
+		);
+
+		if ( ! $has_custom_images ) {
+			return $block_content;
+		}
+
+		$alt_text = '';
+		if ( preg_match( '/<img[^>]+alt="([^"]*)"/', $block_content, $matches ) ) {
+			$alt_text = $matches[1];
+		}
+
+		$desktop_url = '';
+		if ( preg_match( '/<img[^>]+src="([^"]+)"/', $block_content, $matches ) ) {
+			$desktop_url = $matches[1];
+		}
+
+		$sources = '';
+		if ( $mobile_url ) {
+			$sources .= '<source media="(max-width: 575px)" srcset="' . esc_url( $mobile_url ) . '">';
+		}
+		if ( $tablet_url ) {
+			$sources .= '<source media="(min-width: 576px)" srcset="' . esc_url( $tablet_url ) . '">';
+		}
+
+		$fallback_url = $desktop_url ? $desktop_url : ( $tablet_url ? $tablet_url : $mobile_url );
+		$fallback_img = '<img src="' . esc_url( $fallback_url ) . '" alt="' . esc_attr( $alt_text ) . '">';
+		$picture_html = '<picture>' . $sources . $fallback_img . '</picture>';
+
+		$block_content = preg_replace(
+			'/<img[^>]+>/',
+			$picture_html,
+			$block_content,
+			1
+		);
+	}
+
+	return $block_content;
+}
+
 
 /**
  * Añadir atributos del bloque como variables CSS
