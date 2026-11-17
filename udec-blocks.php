@@ -4,7 +4,7 @@
  *
  * Plugin Name:  UdeC Blocks
  * Description:  Bloques personalizados para UdeC
- * Version:      0.1.0
+ * Version:      0.2.0
  * Plugin URI:   https://bloom.lat
  * Author:       bloom.lat
  * Author URI:   https://bloom.lat
@@ -32,7 +32,9 @@ function udec_blocks_init() {
 		'accordion',
 	);
 	foreach ( $blocks as $block ) {
-		register_block_type( __DIR__ . '/build/blocks/' . $block );
+		register_block_type_from_metadata(
+			__DIR__ . '/build/blocks/' . $block
+		);
 	}
 
 	// Bloque para el contenido de una pestaña.
