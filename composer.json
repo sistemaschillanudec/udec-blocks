@@ -31,7 +31,8 @@
   "archive": {
     "exclude": [
       "node_modules/"
-    ],
+    ]
+  },
   "config": {
     "allow-plugins": {
       "dealerdirect/phpcodesniffer-composer-installer": true
