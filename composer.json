@@ -25,6 +25,7 @@
     "make-pot": "wp i18n make-pot . languages/_s.pot",
     "build": [
       "pnpm install",
+      "pnpm approve-builds",
       "pnpm build"
     ]
   },
